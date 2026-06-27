@@ -1,50 +1,46 @@
--- Lewx Hub New - Blox Fruits GUI
--- Tất cả chức năng đều hoạt động (tự động farm, teleport, auto-buy, v.v.)
--- UI dạng tròn, bóng mờ, hiệu ứng màu động.
+-- Lewx Hub New - Bản sửa lỗi hiển thị (dùng nguyên thủy, không phụ thuộc TweenService nếu lỗi)
+-- Đảm bảo GUI hiển thị trên mọi phiên bản Roblox
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Tạo ScreenGui
+-- Tạo ScreenGui với thứ tự hiển thị cao
 local gui = Instance.new("ScreenGui")
 gui.Name = "LewxHubNew"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = LocalPlayer.PlayerGui
 
--- Tạo khung chính dạng tròn
+-- Khung chính - màu nổi bật, không trong suốt để dễ thấy
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 380, 0, 520)
-mainFrame.Position = UDim2.new(0.5, -190, 0.5, -260)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-mainFrame.BackgroundTransparency = 0.15
+mainFrame.Size = UDim2.new(0, 400, 0, 550)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -275)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 30)
+mainFrame.BackgroundTransparency = 0
 mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = true
 mainFrame.Parent = gui
 
--- Bo góc tròn
+-- Bo tròn hoàn toàn
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(1, 0) -- Hình tròn hoàn hảo
+corner.CornerRadius = UDim.new(1, 0)
 corner.Parent = mainFrame
 
--- Hiệu ứng viền phát sáng
-local glow = Instance.new("Frame")
-glow.Size = UDim2.new(1, 8, 1, 8)
-glow.Position = UDim2.new(0, -4, 0, -4)
-glow.BackgroundColor3 = Color3.fromRGB(255, 0, 150)
-glow.BackgroundTransparency = 0.7
-glow.BorderSizePixel = 0
-glow.Parent = mainFrame
-local glowCorner = Instance.new("UICorner")
-glowCorner.CornerRadius = UDim.new(1, 0)
-glowCorner.Parent = glow
+-- Viền sáng bên ngoài
+local border = Instance.new("Frame")
+border.Size = UDim2.new(1, 6, 1, 6)
+border.Position = UDim2.new(0, -3, 0, -3)
+border.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+border.BackgroundTransparency = 0.5
+border.BorderSizePixel = 0
+border.Parent = mainFrame
+local borderCorner = Instance.new("UICorner")
+borderCorner.CornerRadius = UDim.new(1, 0)
+borderCorner.Parent = border
 
 -- Tiêu đề
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 50)
-title.Position = UDim2.new(0, 0, 0, 10)
+title.Size = UDim2.new(1, 0, 0, 55)
+title.Position = UDim2.new(0, 0, 0, 8)
 title.BackgroundTransparency = 1
 title.Text = "⚡ LEWX HUB NEW ⚡"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -53,152 +49,138 @@ title.Font = Enum.Font.GothamBold
 title.Parent = mainFrame
 
 -- Gradient tiêu đề
-local titleGrad = Instance.new("UIGradient")
-titleGrad.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 150)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 150))
+local grad = Instance.new("UIGradient")
+grad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 200)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 200))
 })
-titleGrad.Parent = title
+grad.Parent = title
 
--- Tạo các nút chức năng dạng tròn
-local function createButton(text, yPos, callback)
+-- Hàm tạo nút dạng tròn (không dùng Tween để tránh lỗi)
+local function createBtn(text, yPos, color, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 200, 0, 45)
-    btn.Position = UDim2.new(0.5, -100, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    btn.BackgroundTransparency = 0.3
+    btn.Size = UDim2.new(0, 220, 0, 48)
+    btn.Position = UDim2.new(0.5, -110, 0, yPos)
+    btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 80)
+    btn.BackgroundTransparency = 0
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamSemibold
-    btn.Parent = mainFrame
     btn.BorderSizePixel = 0
+    btn.Parent = mainFrame
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(1, 0)
     btnCorner.Parent = btn
     
-    -- Hiệu ứng hover
-    btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
-    end)
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.3), {BackgroundTransparency = 0.3}):Play()
-    end)
-    
     btn.MouseButton1Click:Connect(callback)
     return btn
 end
 
--- Chức năng Banana (tự động bán trái cây)
-local function autoSellFruits()
-    local args = {
-        [1] = "SellFruit",
-        [2] = "Banana"
-    }
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+-- Chức năng Banana
+local function bananaSell()
+    for i = 1, 20 do
+        pcall(function()
+            local args = {[1] = "SellFruit", [2] = "Banana"}
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+        end)
+        task.wait(0.3)
+    end
+    print("Đã bán 20 Banana")
 end
 
--- Tự động farm quái
-local farmEnabled = false
+-- Auto Farm
+local farmRunning = false
+local farmConnection
 local function toggleFarm()
-    farmEnabled = not farmEnabled
-    print("Farm: " .. tostring(farmEnabled))
-    if farmEnabled then
-        -- Tìm quái gần nhất
-        for _, v in pairs(workspace.Enemies:GetChildren()) do
-            if v:FindFirstChild("HumanoidRootPart") and v.Name ~= "Boss" then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
-                task.wait(0.2)
-                VirtualInputManager:SendKeyEvent(true, "X", false, game)
+    farmRunning = not farmRunning
+    if farmRunning then
+        print("Bắt đầu Farm")
+        farmConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            pcall(function()
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
+                        task.wait()
+                        game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
+                        task.wait(0.05)
+                        game:GetService("VirtualInputManager"):SendKeyEvent(false, "X", false, game)
+                        break
+                    end
+                end
+            end)
+        end)
+    else
+        if farmConnection then farmConnection:Disconnect() end
+        print("Dừng Farm")
+    end
+end
+
+-- Auto Boss
+local function autoBoss()
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == "Boss" and v:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
+            task.wait(0.5)
+            for i = 1, 5 do
+                game:GetService("VirtualInputManager"):SendKeyEvent(true, "X", false, game)
                 task.wait(0.1)
-                VirtualInputManager:SendKeyEvent(false, "X", false, game)
-                break
+                game:GetService("VirtualInputManager"):SendKeyEvent(false, "X", false, game)
+                task.wait(0.2)
             end
         end
     end
 end
 
--- Tự động đánh boss
-local function autoBoss()
-    for _, v in pairs(workspace.Enemies:GetChildren()) do
-        if v.Name == "Boss" and v:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 5)
-            task.wait(0.3)
-            VirtualInputManager:SendKeyEvent(true, "X", false, game)
-            task.wait(0.5)
-            VirtualInputManager:SendKeyEvent(false, "X", false, game)
-        end
-    end
-end
-
--- Teleport đến Island
-local function teleportToIsland(islandName)
+-- Teleport đảo
+local function teleportIsland()
     for _, v in pairs(workspace:GetChildren()) do
-        if v.Name == islandName and v:FindFirstChild("Spawn") then
+        if v.Name == "Jungle" and v:FindFirstChild("Spawn") then
             LocalPlayer.Character.HumanoidRootPart.CFrame = v.Spawn.CFrame * CFrame.new(0, 5, 0)
             break
         end
     end
 end
 
+-- Mua chỉ số
+local function buyStat()
+    pcall(function()
+        local args = {[1] = "BuyStat", [2] = "Melee"}
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+    end)
+end
+
 -- Tạo các nút
-createButton("🍌 Bán Banana (Auto)", 80, function()
-    for i = 1, 10 do
-        autoSellFruits()
-        task.wait(0.5)
-    end
-end)
-
-createButton("⚔️ Farm Quái", 140, toggleFarm)
-
-createButton("👹 Auto Boss", 200, autoBoss)
-
-createButton("🌀 Teleport Đảo", 260, function()
-    teleportToIsland("Jungle")
-end)
-
-createButton("💰 Auto Buy Stats", 320, function()
-    -- Mua điểm chỉ số
-    local args = {[1] = "BuyStat", [2] = "Melee"}
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
-end)
-
-createButton("❌ Tắt Farm", 380, function()
-    farmEnabled = false
-    print("Đã tắt farm")
+createBtn("🍌 Bán Banana (x20)", 75, Color3.fromRGB(200, 150, 0), bananaSell)
+createBtn("⚔️ Farm Quái (Bật/Tắt)", 135, Color3.fromRGB(200, 50, 50), toggleFarm)
+createBtn("👾 Auto Boss", 195, Color3.fromRGB(200, 0, 150), autoBoss)
+createBtn("🌀 Teleport Jungle", 255, Color3.fromRGB(0, 150, 200), teleportIsland)
+createBtn("💰 Mua Stat Melee", 315, Color3.fromRGB(0, 200, 100), buyStat)
+createBtn("🔄 Reset Farm", 375, Color3.fromRGB(150, 150, 150), function()
+    if farmRunning then toggleFarm() end
+    print("Đã reset")
 end)
 
 -- Nút đóng GUI
-local closeBtn = Instance.new("ImageButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -40, 0, 10)
-closeBtn.BackgroundTransparency = 1
-closeBtn.Image = "rbxassetid://10706987864"
-closeBtn.Parent = mainFrame
-closeBtn.MouseButton1Click:Connect(function()
+local close = Instance.new("TextButton")
+close.Size = UDim2.new(0, 35, 0, 35)
+close.Position = UDim2.new(1, -45, 0, 8)
+close.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+close.BackgroundTransparency = 0
+close.Text = "✕"
+close.TextColor3 = Color3.fromRGB(255, 255, 255)
+close.TextScaled = true
+close.Font = Enum.Font.GothamBold
+close.BorderSizePixel = 0
+close.Parent = mainFrame
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = close
+close.MouseButton1Click:Connect(function()
+    if farmConnection then farmConnection:Disconnect() end
     gui:Destroy()
 end)
 
--- Vòng lặp farm (chạy nền)
-task.spawn(function()
-    while task.wait(0.5) do
-        if farmEnabled then
-            pcall(function()
-                for _, v in pairs(workspace.Enemies:GetChildren()) do
-                    if v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-                        LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 0, 4)
-                        task.wait(0.1)
-                        VirtualInputManager:SendKeyEvent(true, "X", false, game)
-                        task.wait(0.05)
-                        VirtualInputManager:SendKeyEvent(false, "X", false, game)
-                        break
-                    end
-                end
-            end)
-        end
-    end
-end)
-
-print("✅ Lewx Hub New đã tải thành công!")
+print("✅ Lewx Hub New đã tải thành công - GUI hiển thị!")
